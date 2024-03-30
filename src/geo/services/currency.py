@@ -8,7 +8,10 @@ class CurrencyService:
     Сервис для работы с данными о валюте.
     """
 
-    def get_currency(self, base: str, ) -> Optional[dict]:
+    def get_currency(
+        self,
+        base: str,
+    ) -> Optional[dict]:
         """
         Получение курса валюты.
         :param country: Страна
@@ -19,5 +22,3 @@ class CurrencyService:
             return data
 
         return None
-
-

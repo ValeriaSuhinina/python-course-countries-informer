@@ -21,5 +21,3 @@ def get_news(request: Request, country_code: str) -> JsonResponse:
         return JsonResponse(serializer.data, safe=False)
 
     raise JsonResponse([], safe=False)
-
-

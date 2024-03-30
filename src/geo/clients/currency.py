@@ -28,7 +28,6 @@ class CurrencyClient(BaseClient):
 
             return None
 
-
     def get_rates(self, base: str = "rub") -> Optional[dict]:
         """
          Получение данных о курсах валют.
@@ -37,5 +36,3 @@ class CurrencyClient(BaseClient):
         """
 
         return self._request(f"{self.get_base_url()}?base={base}")
-
-

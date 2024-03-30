@@ -11,7 +11,12 @@ from rest_framework.request import Request
 
 from app.settings import CACHE_WEATHER
 from app.settings import CACHE_CURRENCY
-from geo.serializers import CountrySerializer, CitySerializer, WeatherSerializer, CurrencySerializer
+from geo.serializers import (
+    CountrySerializer,
+    CitySerializer,
+    WeatherSerializer,
+    CurrencySerializer,
+)
 from geo.services.city import CityService
 from geo.services.country import CountryService
 from geo.services.shemas import CountryCityDTO
@@ -31,25 +36,20 @@ def get_city(request: Request, name: str) -> JsonResponse:
     :param str name: Название города
     :return:
     """
-    
+
     page = int
     page = request.query_params.get("page")
-    size =  int
+    size = int
     size = request.query_params.get("size")
-    
-    if not page:
-        raise ValidationError(
-            {"codes": "Не передан номер страницы."}
-        )
-    
-    if not size:
-        raise ValidationError(
-            {"codes": "Не передано кол-во элементов на странице."}
-        )
 
+    if not page:
+        raise ValidationError({"codes": "Не передан номер страницы."})
+
+    if not size:
+        raise ValidationError({"codes": "Не передано кол-во элементов на странице."})
 
     if cities := CityService().get_cities(name):
-        paginator = Paginator(cities, per_page= size)
+        paginator = Paginator(cities, per_page=size)
         page_object = paginator.get_page(page)
         serializer = CitySerializer(page_object, many=True)
 
@@ -83,7 +83,7 @@ def get_cities(request: Request) -> JsonResponse:
                 "codes": "Не переданы ISO Alpha2 коды стран и названия городов для поиска."
             }
         )
-    
+
     if cities := CityService().get_cities_by_codes(codes_set):
         serializer = CitySerializer(cities, many=True)
 
@@ -106,19 +106,15 @@ def get_country(request: Request, name: str) -> JsonResponse:
     """
     page = int
     page = request.query_params.get("page")
-    size =  int
+    size = int
     size = request.query_params.get("size")
-    
+
     if not page:
-        raise ValidationError(
-            {"codes": "Не передан номер страницы."}
-        )
-    
+        raise ValidationError({"codes": "Не передан номер страницы."})
+
     if not size:
-        raise ValidationError(
-            {"codes": "Не передано кол-во элементов на странице."}
-        )
-    
+        raise ValidationError({"codes": "Не передано кол-во элементов на странице."})
+
     if countries := CountryService().get_countries(name):
         paginator = Paginator(countries, per_page=size)
         page_object = paginator.get_page(page)
@@ -146,7 +142,7 @@ def get_countries(request: Request) -> JsonResponse:
         raise ValidationError(
             {"codes": "Не переданы ISO Alpha2 коды стран для поиска."}
         )
-   
+
     if countries := CountryService().get_countries_by_codes(codes_set):
         serializer = CountrySerializer(countries, many=True)
 
