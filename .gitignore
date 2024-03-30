@@ -138,3 +138,5 @@ dmypy.json
 /media
 /app/staticfiles
 /static
+/.vs/python-course-countries-informer
+/.vs
