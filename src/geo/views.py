@@ -4,16 +4,24 @@ from typing import Any
 
 from django.core.cache import caches
 from django.http import JsonResponse
+from django.core.paginator import Paginator
 from rest_framework.decorators import api_view
 from rest_framework.exceptions import NotFound, ValidationError
 from rest_framework.request import Request
 
 from app.settings import CACHE_WEATHER
-from geo.serializers import CountrySerializer, CitySerializer
+from app.settings import CACHE_CURRENCY
+from geo.serializers import (
+    CountrySerializer,
+    CitySerializer,
+    WeatherSerializer,
+    CurrencySerializer,
+)
 from geo.services.city import CityService
 from geo.services.country import CountryService
 from geo.services.shemas import CountryCityDTO
 from geo.services.weather import WeatherService
+from geo.services.currency import CurrencyService
 
 
 @api_view(["GET"])
@@ -29,8 +37,21 @@ def get_city(request: Request, name: str) -> JsonResponse:
     :return:
     """
 
+    page = int
+    page = request.query_params.get("page")
+    size = int
+    size = request.query_params.get("size")
+
+    if not page:
+        raise ValidationError({"codes": "Не передан номер страницы."})
+
+    if not size:
+        raise ValidationError({"codes": "Не передано кол-во элементов на странице."})
+
     if cities := CityService().get_cities(name):
-        serializer = CitySerializer(cities, many=True)
+        paginator = Paginator(cities, per_page=size)
+        page_object = paginator.get_page(page)
+        serializer = CitySerializer(page_object, many=True)
 
         return JsonResponse(serializer.data, safe=False)
 
@@ -83,9 +104,21 @@ def get_country(request: Request, name: str) -> JsonResponse:
     :param str name: Название страны
     :return:
     """
+    page = int
+    page = request.query_params.get("page")
+    size = int
+    size = request.query_params.get("size")
+
+    if not page:
+        raise ValidationError({"codes": "Не передан номер страницы."})
+
+    if not size:
+        raise ValidationError({"codes": "Не передано кол-во элементов на странице."})
 
     if countries := CountryService().get_countries(name):
-        serializer = CountrySerializer(countries, many=True)
+        paginator = Paginator(countries, per_page=size)
+        page_object = paginator.get_page(page)
+        serializer = CountrySerializer(page_object, many=True)
 
         return JsonResponse(serializer.data, safe=False)
 
@@ -136,11 +169,29 @@ def get_weather(request: Request, alpha2code: str, city: str) -> JsonResponse:
             caches[CACHE_WEATHER].set(cache_key, data)
 
     if data:
-        return JsonResponse(data)
+        serializer = WeatherSerializer(data)
+        return JsonResponse(serializer.data, safe=False)
 
     raise NotFound
 
 
 @api_view(["GET"])
-def get_currency(*args: Any, **kwargs: Any) -> None:
-    pass
+def get_currency(request: Request, base: str) -> JsonResponse:
+    """
+    Получение информации о курсе валюты.
+    :param Request request: Объект запроса
+    :param str base: валюта
+    :return:
+    """
+
+    cache_key = base
+    data = caches[CACHE_CURRENCY].get(cache_key)
+    if not data:
+        if data := CurrencyService().get_currency(base=base):
+            caches[CACHE_CURRENCY].set(cache_key, data)
+
+    if data:
+        serializer = CurrencySerializer(data)
+        return JsonResponse(serializer.data, safe=False)
+
+    raise NotFound
